@@ -1,0 +1,9 @@
+encryptionsalt: v1:TzRRz4mGEVc=:v1:9iFArkdYfCUlB3Dm:ue0UTGnihGeceLO9SU+yLzgnLhq9Rw==
+config:
+  Pulumi-AWS-Infra:InternetGateway: IGW
+  Pulumi-AWS-Infra:privatesubnetCIDRs: '[ "10.200.4.0/24", "10.200.5.0/24", "10.200.6.0/24" ]'
+  Pulumi-AWS-Infra:publicsubnetCIDRs: '[ "10.200.1.0/24", "10.200.2.0/24", "10.200.3.0/24" ]'
+  Pulumi-AWS-Infra:vpc-cidrBlock: 10.200.0.0/16
+  Pulumi-AWS-Infra:vpc_name: MY_VPC2
+  aws:profile: demo
+  aws:region: ap-south-1
