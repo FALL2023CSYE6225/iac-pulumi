@@ -1,0 +1,6 @@
+name: Pulumi-AWS-Infra
+runtime:
+  name: nodejs
+  options:
+    typescript: false
+description: Build AWS Infrastructure.
