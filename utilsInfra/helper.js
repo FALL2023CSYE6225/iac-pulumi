@@ -1,4 +1,5 @@
 const aws = require('@pulumi/aws');
+const axios = require('axios');
 const pulumi = require('@pulumi/pulumi');
 const config = new pulumi.Config();
 const publicsubnetCIDRs = config.get('publicsubnetCIDRs');
@@ -164,10 +165,34 @@ async function createPrivateRouteTable(vpcIdValue) {
   return privateRoute.id;
 }
 
+async function getPublicIPAddress() {
+  try {
+    const response = await axios.get('https://ifconfig.me', { timeout: 5000 });
+    return response.data.trim();
+  } catch (error) {
+    pulumi.log.error(`Error fetching public IP address: ${error.message}`);
+    return '';
+  }
+}
+
+async function getPublicIp() {
+  try {
+    const response = await axios.get('https://api.ipify.org?format=json');
+    return response.data.ip;
+  } catch (error) {
+    console.error('Error getting public IP:', error);
+    return null;
+  }
+}
+
+//const myIpCidr = pulumi.output(getPublicIp()).apply((ip) => `${ip}/32`);
+
 // Export the public subnets
 module.exports = {
   createPublicSubnets,
   createPrivateSubnets,
   createPublicRouteTable,
   createPrivateRouteTable,
+  getPublicIPAddress,
+  getPublicIp,
 };

@@ -24,7 +24,9 @@ Pulumi- Iaas
 
 - Create a public route in the public route table created above with the destination CIDR block 0.0.0.0/0 and the internet gateway
 
-- Created above as the target.
+- Created Security Group -allowing incoming traffic on port 8080, 80,443,22 for Ipv4 and Ipv6 address.
+  Outbound rule all traffic for Ipv4 and Ipv6.
+  -Security Group is attached the Non defualt VPC created, the same security group is attached to EC2 instances created from Input AMI ID
 
 ## Switch to specific member account
 
