@@ -6,4 +6,4 @@ config:
   Pulumi-AWS-Infra:vpc-cidrBlock: 10.200.0.0/16
   Pulumi-AWS-Infra:vpc_name: MY_VPC2
   aws:profile: demo
-  aws:region: ap-south-1
+  aws:region: us-east-1
