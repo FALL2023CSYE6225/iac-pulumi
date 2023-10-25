@@ -51,4 +51,21 @@ async function createSecurityGroup(vpcId) {
   return securityGroup;
 }
 
-module.exports = createSecurityGroup;
+async function dataBaseSecurityGroup(vpcId, appSecurityGroupId) {
+  const dbSecurityGroup = new aws.ec2.SecurityGroup('dbsecurityGroup', {
+    name: 'database security group',
+    description: 'Allow traffic from non default ec2 created',
+    vpcId: vpcId,
+    ingress: [
+      {
+        fromPort: 5432,
+        toPort: 5432,
+        protocol: 'tcp',
+        securityGroups: [appSecurityGroupId],
+      },
+    ],
+  });
+  return dbSecurityGroup;
+}
+
+module.exports = { createSecurityGroup, dataBaseSecurityGroup };
