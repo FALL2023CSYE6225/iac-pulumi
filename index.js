@@ -4,7 +4,12 @@ const aws = require('@pulumi/aws');
 const awsx = require('@pulumi/awsx');
 const { instanceConfig } = require('./utilsInfra/var');
 const amiHelper = require('./utilsInfra/amiHelper');
-const createSecurityGroup = require('./utilsInfra/securityGroup');
+const {
+  createSecurityGroup,
+  dataBaseSecurityGroup,
+} = require('./utilsInfra/securityGroup');
+const { createRDSParameterGroup } = require('./utilsInfra/parmatergrp');
+const { createRDSPostgres } = require('./utilsInfra/rdspostgres');
 const config = new pulumi.Config();
 // {
 //   provider: provider;
@@ -78,78 +83,7 @@ async function createInfrastructure() {
     );
   });
   const firstPublicSubnetId = publicSubnetsArray[0].id;
-  //console.log('ID of the first public subnet:', firstPublicSubnetId);
-  //const myIpCidr = pulumi.output(getPublicIp()).apply((ip) => `${ip}/32`);
-  //console.log('MY IP', myIpCidr);
-  /*
-  const securityGroup = new aws.ec2.SecurityGroup('securityGroup', {
-    name: 'application security group',
-    description: 'Allow HTTP, HTTPS, SSH, and Custom TCP traffic',
-    vpcId: vpcIdValue,
-    ingress: [
-      {
-        description: 'HTTP from Anywhere (IPv4)',
-        fromPort: 80,
-        toPort: 80,
-        protocol: 'tcp',
-        cidrBlocks: ['0.0.0.0/0'],
-      },
-      {
-        description: 'HTTP from Anywhere (IPv6)',
-        fromPort: 80,
-        toPort: 80,
-        protocol: 'tcp',
-        ipv6CidrBlocks: ['::/0'],
-      },
-      {
-        description: 'HTTPS from Anywhere (IPv4)',
-        fromPort: 443,
-        toPort: 443,
-        protocol: 'tcp',
-        cidrBlocks: ['0.0.0.0/0'],
-      },
-      {
-        description: 'HTTPS from Anywhere (IPv6)',
-        fromPort: 443,
-        toPort: 443,
-        protocol: 'tcp',
-        ipv6CidrBlocks: ['::/0'],
-      },
-      {
-        description: 'SSH from My IP',
-        fromPort: 22,
-        toPort: 22,
-        protocol: 'tcp',
-        cidrBlocks: ['0.0.0.0/0'],
-      },
-      {
-        description: 'Custom TCP Port 8080 from Anywhere (IPv4)',
-        fromPort: 8080,
-        toPort: 8080,
-        protocol: 'tcp',
-        cidrBlocks: ['0.0.0.0/0'],
-      },
-      {
-        description: 'Custom TCP Port 8080 from Anywhere (IPv6)',
-        fromPort: 8080,
-        toPort: 8080,
-        protocol: 'tcp',
-        ipv6CidrBlocks: ['::/0'],
-      },
-    ],
-    tags: {
-      Name: 'application security group',
-    },
-    egress: [
-      {
-        fromPort: 0,
-        toPort: 0,
-        protocol: '-1', // This allows all protocols
-        cidrBlocks: ['0.0.0.0/0'], // This allows all IPv4 traffic
-      },
-    ],
-  });
-*/
+
   // const Ami = amiHelper.getMatchingAmi(); // Call the function
   /*
   matchingAmi.apply((ami) => {
@@ -158,6 +92,14 @@ async function createInfrastructure() {
     console.log(`Found matching AMI ID: ${ami.id}`);
   });*/
   const securityGroup = await createSecurityGroup(vpcIdValue);
+  const appSecurityGroupId = securityGroup.id;
+  const dbsecurityGroup = await dataBaseSecurityGroup(
+    vpcIdValue,
+    appSecurityGroupId
+  );
+
+  const dbParameterGroup = await createRDSParameterGroup();
+
   const instance = new aws.ec2.Instance('instance', {
     ami: amiId,
     keyName: instanceConfig.keyName,
