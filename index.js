@@ -8,7 +8,7 @@ const {
   createSecurityGroup,
   dataBaseSecurityGroup,
 } = require('./utilsInfra/securityGroup');
-const { createRDSParameterGroup } = require('./utilsInfra/parmatergrp');
+
 const { createRDSPostgres } = require('./utilsInfra/rdspostgres');
 const config = new pulumi.Config();
 // {
@@ -56,6 +56,7 @@ async function createInfrastructure() {
   const iGatewayId = iGateway.id;
   const publicSubnetsArray = await createPublicSubnets(vpcIdValue);
   const privateSubnetsArray = await createPrivateSubnets(vpcIdValue);
+
   const publicRouteCreatedId = await createPublicRouteTable(
     vpcIdValue,
     iGatewayId
@@ -98,7 +99,21 @@ async function createInfrastructure() {
     appSecurityGroupId
   );
 
-  const dbParameterGroup = await createRDSParameterGroup();
+  const dbSubnetGroupName = new aws.rds.SubnetGroup('my-dbsubnet-group', {
+    subnetIds: privateSubnetsArray.map((subnet) => subnet.id),
+    tags: {
+      Name: 'db-subnet-group',
+    },
+  });
+
+  const dbsecurityGroupId = dbsecurityGroup.id;
+  const rdsPostgres = await createRDSPostgres(
+    dbsecurityGroupId,
+    dbSubnetGroupName
+  );
+  //console.log(rdsPostgres);
+  //const dbParameterGroup = await createRDSParameterGroup();
+  //Add the Parameters to Group
 
   const instance = new aws.ec2.Instance('instance', {
     ami: amiId,
@@ -106,6 +121,25 @@ async function createInfrastructure() {
     instanceType: instanceConfig.instanceType,
     subnetId: firstPublicSubnetId,
     vpcSecurityGroupIds: [securityGroup.id],
+    userData: pulumi
+      .all([
+        rdsPostgres.endpoint,
+        rdsPostgres.username,
+        rdsPostgres.password,
+        rdsPostgres.dbName,
+      ])
+      .apply(([endpoint, user, pass, dbName]) => {
+        const host = endpoint.split(':')[0];
+        return `#!/bin/bash
+          echo DB_DIALECT=${config.get('DB_DIALECT')} >> /etc/environment
+          echo DB_NAME=${dbName} >> /etc/environment
+          echo DB_HOST=${host} >> /etc/environment
+          echo DB_USER=${user} >> /etc/environment
+          echo DB_PASSWORD=${pass} >> /etc/environment
+          echo PORT=${config.get('PORT')} >> /etc/environment
+          sudo systemctl daemon-reload
+      `;
+      }),
     rootBlockDevice: {
       volumeSize: instanceConfig.rootBlockDevice.volumeSize,
       volumeType: instanceConfig.rootBlockDevice.volumeType,
@@ -113,6 +147,7 @@ async function createInfrastructure() {
     },
     disableApiTermination: instanceConfig.disableApiTermination,
     tags: instanceConfig.tags,
+    //opts: pulumi.ResourceOptions({ dependsOn: [rdsPostgres] }),
   });
 }
 
