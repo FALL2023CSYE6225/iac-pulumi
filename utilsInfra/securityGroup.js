@@ -64,6 +64,9 @@ async function dataBaseSecurityGroup(vpcId, appSecurityGroupId) {
         securityGroups: [appSecurityGroupId],
       },
     ],
+    tags: {
+      Name: 'database security group',
+    },
   });
   return dbSecurityGroup;
 }
