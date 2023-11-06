@@ -9,6 +9,7 @@ function generateRandomPassword() {
   }).result;
 }
 */
+/*
 function generateValidRDSPassword(length) {
   const allowedChars =
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&*()_+-';
@@ -20,11 +21,33 @@ function generateValidRDSPassword(length) {
   }
 
   return password;
+}*/
+
+function generateValidRDSPassword() {
+  const length = 16;
+  const charset =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&*()_+-';
+
+  let password = '';
+
+  // Ensure at least one char of each type
+  password += charset.charAt(Math.floor(Math.random() * 26)); // a-z
+  password += charset.charAt(Math.floor(Math.random() * 26) + 26); // A-Z
+  password += charset.charAt(Math.floor(Math.random() * 10) + 52); // 0-9
+  password += charset.charAt(Math.floor(Math.random() * 14) + 62); // symbols
+
+  // Fill remaining with random chars
+  for (let i = 4; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+
+  return password;
 }
+
 async function createRDSPostgres(dbsecurityGroupId, dbSubnetGroupName) {
   const dbParameterGroup = await createRDSParameterGroup();
   //const randomPassword = generateRandomPassword();
-  const strongPassword = generateValidRDSPassword(16);
+  const strongPassword = generateValidRDSPassword();
   const rdsPostgres = new aws.rds.Instance('postgres', {
     engine: 'postgres',
     engineVersion: '14.6',
