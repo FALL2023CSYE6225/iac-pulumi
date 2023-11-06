@@ -10,6 +10,8 @@ const {
 } = require('./utilsInfra/securityGroup');
 
 const { createRDSPostgres } = require('./utilsInfra/rdspostgres');
+const { createUpdateDNSA } = require('./utilsInfra/dnsrecordA');
+const { createEc2Instance } = require('./utilsInfra/ec2');
 const config = new pulumi.Config();
 // {
 //   provider: provider;
@@ -31,6 +33,7 @@ const vpcCidrBlock = config.get('vpc-cidrBlock') || '10.200.0.0/16';
 const iGateWayConfig = config.get('InternetGateway') || 'IGW';
 //console.log(iGateWayConfig);
 const amiId = config.get('amiId');
+const baseDomain = config.get('baseDomain');
 
 // Create an AWS VPC
 async function createInfrastructure() {
@@ -114,7 +117,7 @@ async function createInfrastructure() {
   //console.log(rdsPostgres);
   //const dbParameterGroup = await createRDSParameterGroup();
   //Add the Parameters to Group
-
+  /*
   const instance = new aws.ec2.Instance('instance', {
     ami: amiId,
     keyName: instanceConfig.keyName,
@@ -149,6 +152,19 @@ async function createInfrastructure() {
     tags: instanceConfig.tags,
     //opts: pulumi.ResourceOptions({ dependsOn: [rdsPostgres] }),
   });
+*/
+  // await instance.id;
+  const instance = await createEc2Instance(
+    amiId,
+    firstPublicSubnetId,
+    appSecurityGroupId,
+    rdsPostgres
+  );
+
+  const dnsrecordACreateUpdate = await createUpdateDNSA(
+    baseDomain,
+    instance.publicIp
+  );
 }
 
 createInfrastructure();
