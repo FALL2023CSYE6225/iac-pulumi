@@ -1,5 +1,9 @@
 const { createRDSParameterGroup } = require('../utilsInfra/parmatergrp');
 const aws = require('@pulumi/aws');
+const pulumi = require('@pulumi/pulumi');
+const config = new pulumi.Config();
+
+const dbPassword = config.get('dbConnect');
 //const random = require('@pulumi/random');
 /*
 function generateRandomPassword() {
@@ -47,7 +51,7 @@ function generateValidRDSPassword() {
 async function createRDSPostgres(dbsecurityGroupId, dbSubnetGroupName) {
   const dbParameterGroup = await createRDSParameterGroup();
   //const randomPassword = generateRandomPassword();
-  const strongPassword = generateValidRDSPassword();
+  //const strongPassword = generateValidRDSPassword();
   const rdsPostgres = new aws.rds.Instance('postgres', {
     engine: 'postgres',
     engineVersion: '14.6',
@@ -55,7 +59,7 @@ async function createRDSPostgres(dbsecurityGroupId, dbSubnetGroupName) {
     identifier: 'csye6225',
     multiAz: false,
     username: 'csye6225',
-    password: strongPassword,
+    password: dbPassword,
     parameterGroupName: dbParameterGroup,
     dbName: 'csye6225',
     dbSubnetGroupName: dbSubnetGroupName,

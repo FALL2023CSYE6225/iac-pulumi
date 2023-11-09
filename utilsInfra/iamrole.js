@@ -20,7 +20,7 @@ async function createEc2CloudWatchIamRole() {
   });
 
   // Attach the CloudWatchAgentServerPolicy policy to the role
-  const policyAttachment = new aws.iam.RolePolicyAttachment(
+  const cloudWatchIamRolePolicyAttachment = new aws.iam.RolePolicyAttachment(
     'myEC2RolePolicyAttachment',
     {
       policyArn: 'arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy',
@@ -28,7 +28,10 @@ async function createEc2CloudWatchIamRole() {
     }
   );
 
-  return role.arn;
+  return role;
 }
+
+
+
 
 module.exports = { createEc2CloudWatchIamRole };

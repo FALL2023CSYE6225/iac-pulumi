@@ -12,6 +12,7 @@ const {
 const { createRDSPostgres } = require('./utilsInfra/rdspostgres');
 const { createUpdateDNSA } = require('./utilsInfra/dnsrecordA');
 const { createEc2Instance } = require('./utilsInfra/ec2');
+const { createCloudWatch } = require('./utilsInfra/cloudwatch');
 const config = new pulumi.Config();
 // {
 //   provider: provider;
@@ -165,6 +166,8 @@ async function createInfrastructure() {
     baseDomain,
     instance.publicIp
   );
+
+  const cloudWatch = await createCloudWatch();
 }
 
 createInfrastructure();

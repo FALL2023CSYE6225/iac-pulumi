@@ -11,9 +11,9 @@ async function createEc2Instance(
   rdsPostgres
 ) {
   // Create the IAM role for CloudWatch agent
-  const cloudWatchIamRoleArn = await createEc2CloudWatchIamRole();
+  const cloudWatchIamRole = await createEc2CloudWatchIamRole();
   const instanceProfile = new aws.iam.InstanceProfile('myInstanceProfile', {
-    roles: [cloudWatchIamRoleArn],
+    role: cloudWatchIamRole.name,
   });
 
   const instance = new aws.ec2.Instance('instance', {
@@ -39,6 +39,10 @@ async function createEc2Instance(
               echo DB_USER=${user} >> /etc/environment
               echo DB_PASSWORD=${pass} >> /etc/environment
               echo PORT=${config.get('PORT')} >> /etc/environment
+              sudo systemctl daemon-reload
+              sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/cloudwatch-config.json -s
+              sudo systemctl enable amazon-cloudwatch-agent
+              sudo systemctl start amazon-cloudwatch-agent
               sudo systemctl daemon-reload
           `;
       }),
