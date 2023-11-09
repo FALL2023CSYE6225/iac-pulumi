@@ -3,8 +3,9 @@ config:
   Pulumi-AWS-Infra:DB_DIALECT: postgres
   Pulumi-AWS-Infra:InternetGateway: IGW
   Pulumi-AWS-Infra:PORT: '8080'
-  Pulumi-AWS-Infra:amiId: ami-0440c8113caa51610
+  Pulumi-AWS-Infra:amiId: ami-0b6709e291ad73b8f
   Pulumi-AWS-Infra:baseDomain: dev.ajitpatil.me
+  Pulumi-AWS-Infra:dbConnect: password123PASS
   Pulumi-AWS-Infra:privatesubnetCIDRs: '[ "10.200.4.0/24", "10.200.5.0/24", "10.200.6.0/24" ]'
   Pulumi-AWS-Infra:publicsubnetCIDRs: '[ "10.200.1.0/24", "10.200.2.0/24", "10.200.3.0/24" ]'
   Pulumi-AWS-Infra:vpc-cidrBlock: 10.200.0.0/16
