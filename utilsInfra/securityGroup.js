@@ -1,9 +1,10 @@
 const aws = require('@pulumi/aws');
+const pulumi = require('@pulumi/pulumi');
 //const { ingressRules, egressRules } = require('./rules');
-const { init } = require('./rules');
-async function createSecurityGroup(vpcId) {
-  const { ingressRules, egressRules } = await init();
-  const securityGroup = new aws.ec2.SecurityGroup('securityGroup', {
+const { init, initAppLB } = require('./rules');
+async function createSecurityGroup(vpcId, appLBsecurityGroupId) {
+  const { ingressRules, egressRules } = await init(appLBsecurityGroupId);
+  const securityGroup = new aws.ec2.SecurityGroup('appsecurityGroup', {
     name: 'application security group',
     description: 'Allow HTTP, HTTPS, SSH, and Custom TCP traffic',
     vpcId: vpcId,
@@ -18,9 +19,8 @@ async function createSecurityGroup(vpcId) {
       if (rule.cidrBlocks) {
         ingressRule.cidrBlocks = rule.cidrBlocks;
       }
-
-      if (rule.ipv6CidrBlocks) {
-        ingressRule.ipv6CidrBlocks = rule.ipv6CidrBlocks;
+      if (rule.securityGroups) {
+        ingressRule.securityGroups = rule.securityGroups;
       }
 
       return ingressRule;
@@ -71,4 +71,58 @@ async function dataBaseSecurityGroup(vpcId, appSecurityGroupId) {
   return dbSecurityGroup;
 }
 
-module.exports = { createSecurityGroup, dataBaseSecurityGroup };
+async function appLoadBalancerSecurityGroup(vpcId) {
+  const { ingressRulesLB, egressRulesLB } = await initAppLB();
+  const securityGroupALB = new aws.ec2.SecurityGroup('applbsecurityGroup', {
+    name: 'load balancer security group',
+    description: 'Allow HTTP, HTTPS traffic',
+    vpcId: vpcId,
+    ingress: ingressRulesLB.map((rule) => {
+      const ingressRuleLB = {
+        description: rule.description,
+        fromPort: rule.fromPort,
+        toPort: rule.toPort,
+        protocol: rule.protocol,
+      };
+
+      if (rule.cidrBlocks) {
+        ingressRuleLB.cidrBlocks = rule.cidrBlocks;
+      }
+
+      if (rule.ipv6CidrBlocks) {
+        ingressRuleLB.ipv6CidrBlocks = rule.ipv6CidrBlocks;
+      }
+
+      return ingressRuleLB;
+    }),
+    tags: {
+      Name: 'load balancer security group',
+    },
+    egress: egressRulesLB.map((rule) => {
+      const egressRuleLB = {
+        description: rule.description,
+        fromPort: rule.fromPort,
+        toPort: rule.toPort,
+        protocol: rule.protocol,
+      };
+
+      if (rule.cidrBlocks) {
+        egressRuleLB.cidrBlocks = rule.cidrBlocks;
+      }
+
+      if (rule.ipv6CidrBlocks) {
+        egressRuleLB.ipv6CidrBlocks = rule.ipv6CidrBlocks;
+      }
+
+      return egressRuleLB;
+    }),
+  });
+  //await pulumi.all([securityGroupALB]);
+  return securityGroupALB;
+}
+
+module.exports = {
+  createSecurityGroup,
+  dataBaseSecurityGroup,
+  appLoadBalancerSecurityGroup,
+};

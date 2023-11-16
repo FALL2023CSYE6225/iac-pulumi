@@ -3,16 +3,26 @@ const pulumi = require('@pulumi/pulumi');
 const aws = require('@pulumi/aws');
 const awsx = require('@pulumi/awsx');
 const { instanceConfig } = require('./utilsInfra/var');
+const { createEc2CloudWatchIamRole } = require('./utilsInfra/iamrole');
+const {
+  createLoadBalancerTargetGrpAndListener,
+  createLoadBalancer,
+} = require('./utilsInfra/loadbalancer');
 const amiHelper = require('./utilsInfra/amiHelper');
 const {
   createSecurityGroup,
   dataBaseSecurityGroup,
+  appLoadBalancerSecurityGroup,
 } = require('./utilsInfra/securityGroup');
 
 const { createRDSPostgres } = require('./utilsInfra/rdspostgres');
 const { createUpdateDNSA } = require('./utilsInfra/dnsrecordA');
 const { createEc2Instance } = require('./utilsInfra/ec2');
 const { createCloudWatch } = require('./utilsInfra/cloudwatch');
+const {
+  createEc2FromLaunchTemp,
+  createAutoScalingGrp,
+} = require('./utilsInfra/launchTempAutoScalingGrp');
 const config = new pulumi.Config();
 // {
 //   provider: provider;
@@ -96,7 +106,14 @@ async function createInfrastructure() {
     // Access the AMI data here
     console.log(`Found matching AMI ID: ${ami.id}`);
   });*/
-  const securityGroup = await createSecurityGroup(vpcIdValue);
+
+  const appLBsecurityGroup = await appLoadBalancerSecurityGroup(vpcIdValue);
+  const appLBsecurityGroupId = appLBsecurityGroup.id;
+  //console.log('LoadBalancer ID ', appLBsecurityGroupId);
+  const securityGroup = await createSecurityGroup(
+    vpcIdValue,
+    appLBsecurityGroupId
+  );
   const appSecurityGroupId = securityGroup.id;
   const dbsecurityGroup = await dataBaseSecurityGroup(
     vpcIdValue,
@@ -153,8 +170,11 @@ async function createInfrastructure() {
     tags: instanceConfig.tags,
     //opts: pulumi.ResourceOptions({ dependsOn: [rdsPostgres] }),
   });
+
 */
   // await instance.id;
+  /*
+  //CODE COMMENT ON Nov 12
   const instance = await createEc2Instance(
     amiId,
     firstPublicSubnetId,
@@ -162,12 +182,40 @@ async function createInfrastructure() {
     rdsPostgres
   );
 
-  const dnsrecordACreateUpdate = await createUpdateDNSA(
-    baseDomain,
-    instance.publicIp
-  );
+ 
 
   const cloudWatch = await createCloudWatch();
+  //CODE COMMENT ON Nov 12*/
+  const alb = await createLoadBalancer(
+    appLBsecurityGroupId,
+    publicSubnetsArray
+  );
+  const loadBalancerTG = await createLoadBalancerTargetGrpAndListener(
+    vpcIdValue,
+    alb
+    //appLBsecurityGroupId,
+    //publicSubnetsArray
+  );
+  const targetGroupARN = loadBalancerTG.arn;
+  const cloudWatchIamRole = await createEc2CloudWatchIamRole();
+  const instanceProfile = new aws.iam.InstanceProfile('myInstanceProfile', {
+    role: cloudWatchIamRole.name,
+  });
+
+  const launchTemp = await createEc2FromLaunchTemp(
+    amiId,
+    instanceProfile,
+    appSecurityGroupId,
+    rdsPostgres
+  );
+  const launchTempId = launchTemp.id;
+  const aSG = await createAutoScalingGrp(
+    publicSubnetsArray,
+    launchTempId,
+    targetGroupARN
+  );
+
+  const dnsrecordACreateUpdate = await createUpdateDNSA(baseDomain, alb);
 }
 
 createInfrastructure();
