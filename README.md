@@ -6,7 +6,7 @@ InfraStructureasCode-Pulumi
 
 Pulumi- Iaas
 
-## Assignment 4
+## Assignment 8
 
 - In this assignment we are setting up the AWS infrastructure using Pulumi.
 
@@ -27,6 +27,31 @@ Pulumi- Iaas
 - Created Security Group -allowing incoming traffic on port 8080, 80,443,22 for Ipv4 and Ipv6 address.
   Outbound rule all traffic for Ipv4 and Ipv6.
   -Security Group is attached the Non defualt VPC created, the same security group is attached to EC2 instances created from Input AMI ID
+
+- Created 3 Security Groups Application Load Balancer Security Group(ALBSG), Application Security Group(ASG), Database Security Group(DSG)
+  ALBSG
+
+ingress rules
+port 80,443 --> All traffic
+egress rules
+all traffic http and https.
+
+ASG
+ingress rules
+port 22 from SSH, Custom TCP port for Application 8080 source of traffic is ALBSG.
+
+eggress rules
+all traffic http and https.
+
+DSG
+ingress rules
+port 5432 source is ASG
+
+Not egress rules
+
+We have Load Balancer, Listener , Target Group and Autoscaling group to handle the Scaling up and down of application instances.
+LoadBalancer listener listens on 80 for all HTTP requests and directs the incoming requests based on Target Group.
+All the Ec2 instances are created from Launch template.
 
 ## Switch to specific member account
 

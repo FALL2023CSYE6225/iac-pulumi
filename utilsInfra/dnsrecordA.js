@@ -1,7 +1,8 @@
 const pulumi = require('@pulumi/pulumi');
 const aws = require('@pulumi/aws');
+const vars = require('./var');
 
-async function createUpdateDNSA(baseDomain, instanceIp) {
+async function createUpdateDNSA(baseDomain, alb) {
   async function getHostedZone(baseDomain) {
     const hostedZone = await aws.route53.getZone({
       name: baseDomain,
@@ -9,6 +10,8 @@ async function createUpdateDNSA(baseDomain, instanceIp) {
 
     return hostedZone;
   }
+  const albDnsName = alb.dnsName;
+  const albTargetZoneId = alb.zoneId;
 
   const hostedZoneResolved = await getHostedZone(baseDomain);
 
@@ -17,21 +20,35 @@ async function createUpdateDNSA(baseDomain, instanceIp) {
   const wwwName = `www.${baseDomain}`;
 
   new aws.route53.Record(name, {
-    name: name,
-    records: [instanceIp],
-    ttl: 300,
-    type: 'A',
-    zoneId: hostedZoneResolved.id,
-    replaceOnChanges: [instanceIp],
+    name: name, //no chnage
+    // records: [instanceIp],
+    //ttl: 300,
+    type: 'A', //no change
+    zoneId: hostedZoneResolved.id, // no change
+    //replaceOnChanges: [instanceIp],
+    aliases: [
+      {
+        name: albDnsName,
+        zoneId: albTargetZoneId,
+        evaluateTargetHealth: vars.route53Config.albEvaluateTargetHealth,
+      },
+    ],
   });
 
   new aws.route53.Record(wwwName, {
-    name: wwwName,
-    records: [instanceIp],
-    ttl: 300,
-    type: 'A',
-    zoneId: hostedZoneResolved.id,
-    replaceOnChanges: [instanceIp],
+    name: wwwName, //no change
+    //records: [instanceIp],
+    //ttl: 300,
+    type: 'A', //no change
+    zoneId: hostedZoneResolved.id, // no change
+    //replaceOnChanges: [instanceIp],
+    aliases: [
+      {
+        name: albDnsName,
+        zoneId: albTargetZoneId,
+        evaluateTargetHealth: vars.route53Config.albEvaluateTargetHealth,
+      },
+    ],
   });
 }
 
