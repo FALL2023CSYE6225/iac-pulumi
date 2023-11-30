@@ -6,7 +6,7 @@ InfraStructureasCode-Pulumi
 
 Pulumi- Iaas
 
-## Assignment 8
+## Assignment
 
 - In this assignment we are setting up the AWS infrastructure using Pulumi.
 
@@ -47,11 +47,15 @@ DSG
 ingress rules
 port 5432 source is ASG
 
-Not egress rules
+No egress rules
 
 We have Load Balancer, Listener , Target Group and Autoscaling group to handle the Scaling up and down of application instances.
 LoadBalancer listener listens on 80 for all HTTP requests and directs the incoming requests based on Target Group.
 All the Ec2 instances are created from Launch template.
+
+Infra For Assignment Submission #09.
+In order to send Notification to assignment submitter , we built SNS which would be a trigger for Lambda Function to trigger notification mails using MailGun.
+The assignment submission are being stored in stored in GCP bucket(Infra built using Pulumi) and notification emails data are being stored in AWS-DynamoDB(Iac-Pulumi)
 
 ## Switch to specific member account
 

@@ -3,7 +3,7 @@ const pulumi = require('@pulumi/pulumi');
 const aws = require('@pulumi/aws');
 const awsx = require('@pulumi/awsx');
 const { instanceConfig } = require('./utilsInfra/var');
-const { createEc2CloudWatchIamRole } = require('./utilsInfra/iamrole');
+const { createEc2CloudWatchSNSIamRole } = require('./utilsInfra/iamrole');
 const {
   createLoadBalancerTargetGrpAndListener,
   createLoadBalancer,
@@ -23,6 +23,9 @@ const {
   createEc2FromLaunchTemp,
   createAutoScalingGrp,
 } = require('./utilsInfra/launchTempAutoScalingGrp');
+const { gcpBucketCreate, gcpCloudResources } = require('./GCP/gcpbucket');
+const { createLambda } = require('./utilsInfra/aws-lambda');
+const { createDynamo } = require('./utilsInfra/dynamodb');
 const config = new pulumi.Config();
 // {
 //   provider: provider;
@@ -34,6 +37,8 @@ const {
   createPublicRouteTable,
   createPrivateRouteTable,
 } = require('./utilsInfra/helper');
+
+const { createSNS, subscribeToSNS } = require('./utilsInfra/snsaws');
 
 // Retrieve configuration values or use defaults if not defined
 const vpcName = config.get('vpc_name') || 'my-VPC';
@@ -197,16 +202,21 @@ async function createInfrastructure() {
     //publicSubnetsArray
   );
   const targetGroupARN = loadBalancerTG.arn;
-  const cloudWatchIamRole = await createEc2CloudWatchIamRole();
+  const cloudWatchSNSIamRole = await createEc2CloudWatchSNSIamRole();
   const instanceProfile = new aws.iam.InstanceProfile('myInstanceProfile', {
-    role: cloudWatchIamRole.name,
+    role: cloudWatchSNSIamRole.name,
   });
-
+  //Asgn 9 create sns to transfer the srn details to User Data
+  const snsArn = await createSNS();
+  //const snsArn = sns.arn;
+  const snsRegion = pulumi.all([snsArn]).apply(([arn]) => arn.split(':')[3]);
   const launchTemp = await createEc2FromLaunchTemp(
     amiId,
     instanceProfile,
     appSecurityGroupId,
-    rdsPostgres
+    rdsPostgres,
+    snsArn,
+    snsRegion
   );
   const launchTempId = launchTemp.id;
   const aSG = await createAutoScalingGrp(
@@ -216,6 +226,15 @@ async function createInfrastructure() {
   );
 
   const dnsrecordACreateUpdate = await createUpdateDNSA(baseDomain, alb);
+  const gcpBucketName = await gcpBucketCreate();
+  const gcp_access_key = await gcpCloudResources(gcpBucketName);
+  const dynamodbTable = await createDynamo();
+  const awsLambda = await createLambda(
+    gcp_access_key,
+    gcpBucketName,
+    dynamodbTable.name
+  );
+  const subscriptionSNS = await subscribeToSNS(snsArn, awsLambda);
 }
 
 createInfrastructure();
