@@ -1,6 +1,6 @@
 const aws = require('@pulumi/aws');
 
-async function createEc2CloudWatchIamRole() {
+async function createEc2CloudWatchSNSIamRole() {
   const role = new aws.iam.Role('myEC2Role', {
     assumeRolePolicy: JSON.stringify({
       Version: '2012-10-17',
@@ -15,7 +15,7 @@ async function createEc2CloudWatchIamRole() {
       ],
     }),
     tags: {
-      'tag-key': 'cloudwatchAgentServer',
+      'tag-key': 'EC2Roles',
     },
   });
 
@@ -28,10 +28,17 @@ async function createEc2CloudWatchIamRole() {
     }
   );
 
+  //Assign9
+  // Attach AmazonSNSFullAccess policy to IAM role
+  const snsPolicyAttachment = new aws.iam.RolePolicyAttachment(
+    'EC2SNSFullAccessPolicyAttachment',
+    {
+      policyArn: 'arn:aws:iam::aws:policy/AmazonSNSFullAccess',
+      role: role.name,
+    }
+  );
+
   return role;
 }
 
-
-
-
-module.exports = { createEc2CloudWatchIamRole };
+module.exports = { createEc2CloudWatchSNSIamRole };

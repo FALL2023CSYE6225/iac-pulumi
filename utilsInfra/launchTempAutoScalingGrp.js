@@ -9,7 +9,9 @@ async function createEc2FromLaunchTemp(
   amiId,
   instanceProfile,
   appSecurityGroupId,
-  rdsPostgres
+  rdsPostgres,
+  snsArn,
+  snsRegion
 ) {
   const userDataScript = pulumi
     .all([
@@ -17,8 +19,10 @@ async function createEc2FromLaunchTemp(
       rdsPostgres.username,
       rdsPostgres.password,
       rdsPostgres.dbName,
+      snsArn,
+      snsRegion,
     ])
-    .apply(([endpoint, user, pass, dbName]) => {
+    .apply(([endpoint, user, pass, dbName, snsArn, snsRegion]) => {
       const host = endpoint.split(':')[0];
       return `#!/bin/bash
         echo DB_DIALECT=${config.get('DB_DIALECT')} >> /etc/environment
@@ -27,6 +31,8 @@ async function createEc2FromLaunchTemp(
         echo DB_USER=${user} >> /etc/environment
         echo DB_PASSWORD=${pass} >> /etc/environment
         echo PORT=${config.get('PORT')} >> /etc/environment
+        echo REGION=${snsRegion} >> /etc/environment
+        echo TOPICARN=${snsArn} >> /etc/environment
         sudo systemctl daemon-reload
         sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/cloudwatch-config.json -s
         sudo systemctl enable amazon-cloudwatch-agent
