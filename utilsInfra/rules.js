@@ -43,7 +43,7 @@ async function init(appLBsecurityGroupId) {
 async function initAppLB() {
   return {
     ingressRulesLB: [
-      {
+      /*{
         description: 'HTTP from Anywhere (IPv4)',
         fromPort: 80,
         toPort: 80,
@@ -56,7 +56,7 @@ async function initAppLB() {
         toPort: 80,
         protocol: 'tcp',
         ipv6CidrBlocks: ['::/0'],
-      },
+      },*/
       {
         description: 'HTTPS from Anywhere (IPv4)',
         fromPort: 443,

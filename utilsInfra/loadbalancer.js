@@ -1,6 +1,7 @@
 const pulumi = require('@pulumi/pulumi');
 const aws = require('@pulumi/aws');
 const vars = require('./var');
+const config = new pulumi.Config();
 
 async function createLoadBalancerTargetGrpAndListener(vpcIdValue, alb) {
   try {
@@ -38,10 +39,12 @@ async function createLoadBalancerTargetGrpAndListener(vpcIdValue, alb) {
     });*/
 
     // Listeners and routing on Console
+    const certificateArn = config.get("certificateArn");
     const listener = new aws.lb.Listener(vars.listenerConfig.lbListenerName, {
       loadBalancerArn: alb.arn,
       port: vars.listenerConfig.lbListenerPort,
       protocol: vars.listenerConfig.lbListenerProtocol,
+      certificateArn: certificateArn,
       defaultActions: [
         {
           type: vars.listenerConfig.lbListenerDefaultActionsType,

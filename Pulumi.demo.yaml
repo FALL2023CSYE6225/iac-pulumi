@@ -5,6 +5,7 @@ config:
   Pulumi-AWS-Infra:PORT: '8080'
   Pulumi-AWS-Infra:amiId: ami-0220fdde94b99ab79
   Pulumi-AWS-Infra:baseDomain: demo.ajitpatil.me
+  Pulumi-AWS-Infra:certificateArn: arn:aws:acm:us-east-1:130332994094:certificate/fdfeb24b-8f8c-40ec-9943-5a10503b2450
   Pulumi-AWS-Infra:dbConnect:
     secure: v1:ezbbOD0/nBz4XThd:NnBdEad/vMsGJrn/GS5QJt6m59xtLh0bSuN1zQQjSw==
   Pulumi-AWS-Infra:mailGun:
@@ -15,3 +16,4 @@ config:
   Pulumi-AWS-Infra:vpc_name: MY_VPC2
   aws:profile: demo
   aws:region: us-east-1
+  gcp:project: tidal-tower-406105

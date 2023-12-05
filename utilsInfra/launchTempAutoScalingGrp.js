@@ -98,6 +98,7 @@ async function createAutoScalingGrp(
 ) {
   const csye6225Asg = new aws.autoscaling.Group('csye6225Asg', {
     desiredCapacity: vars.autoScalingGrpConfig.asg_desired_capacity,
+    name: 'csye6225Asg',
     maxSize: vars.autoScalingGrpConfig.asg_max_size,
     minSize: vars.autoScalingGrpConfig.asg_min_size,
     defaultCooldown: vars.autoScalingGrpConfig.asg_cooldown_period,

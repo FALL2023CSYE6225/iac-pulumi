@@ -14,8 +14,8 @@ const lbEnableDeletionProtection = true;
 
 // Load Balancer Listener Defaults
 const lbListenerName = 'MyListener';
-const lbListenerPort = 80;
-const lbListenerProtocol = 'HTTP';
+const lbListenerPort = 443;
+const lbListenerProtocol = 'HTTPS';
 //const lbType = 'application';
 const lbListenerDefaultActionsType = 'forward';
 const stack = pulumi.runtime.getStack();
