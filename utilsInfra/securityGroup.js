@@ -75,7 +75,7 @@ async function appLoadBalancerSecurityGroup(vpcId) {
   const { ingressRulesLB, egressRulesLB } = await initAppLB();
   const securityGroupALB = new aws.ec2.SecurityGroup('applbsecurityGroup', {
     name: 'load balancer security group',
-    description: 'Allow HTTP, HTTPS traffic',
+    description: 'Allow HTTPS traffic',
     vpcId: vpcId,
     ingress: ingressRulesLB.map((rule) => {
       const ingressRuleLB = {

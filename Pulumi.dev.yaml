@@ -5,6 +5,7 @@ config:
   Pulumi-AWS-Infra:PORT: '8080'
   Pulumi-AWS-Infra:amiId: ami-0220fdde94b99ab79
   Pulumi-AWS-Infra:baseDomain: dev.ajitpatil.me
+  Pulumi-AWS-Infra:certificateArn: arn:aws:acm:us-east-1:838458155220:certificate/9bb95f12-6f59-4551-8406-3b04d139c399
   Pulumi-AWS-Infra:dbConnect:
     secure: v1:y+6y2nvhjm972E/H:F4l5mNO8CSdWhi0iiBpN+Pnefq1D+p+6p0mbjjjgDw==
   Pulumi-AWS-Infra:mailGun:

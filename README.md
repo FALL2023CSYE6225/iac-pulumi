@@ -82,3 +82,7 @@ The assignment submission are being stored in stored in GCP bucket(Infra built u
 - To verify the Infrastructure we can goto AWS console and check the VPC, Subnets, Internet gateway
 
 - Also, branch protection rule is added in the upstream repo where unless all the workflows run successfully, it doesn't allow the Pull Request to merge to the main branch.
+
+- Command to import the SSL certificate in AWS Certificate manager demo account 
+
+aws acm import-certificate --profile=demo --certificate file:///Users/ajitpatil/Desktop/ThirdSemester/CSYE6225-Network\ Structures\ \&\ Cloud\ Compt/Assignment\ 10/demo_ajitpatil_me/demo_ajitpatil_me64.crt --certificate-chain file:///Users/ajitpatil/Desktop/ThirdSemester/CSYE6225-Network\ Structures\ \&\ Cloud\ Compt/Assignment\ 10/demo_ajitpatil_me/demo_ajitpatil_me64.ca-bundle --private-key file:///Users/ajitpatil/Desktop/ThirdSemester/CSYE6225-Network\ Structures\ \&\ Cloud\ Compt/Assignment\ 10/demo_ajitpatil_me/private64.key
